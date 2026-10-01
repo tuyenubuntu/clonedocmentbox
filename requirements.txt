@@ -1,0 +1,8 @@
+# syntax: dependency && version number
+webdriver_manager==4.0.2
+PySide6>=6.5.0
+selenium>=4.15.0
+
+
+
+
