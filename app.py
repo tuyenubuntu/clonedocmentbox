@@ -153,6 +153,63 @@ class ScribdWorker(QThread):
             self.progress_changed.emit(85)
             time.sleep(1)
 
+            # =========================================================================
+            # BƯỚC KHẮC PHỤC: Tiêm CSS ép buộc ngắt trang chính xác cho từng trang tài liệu
+            # =========================================================================
+            self.log_message.emit("Đang tối ưu kích thước trang chống cắt đuôi...")
+
+            css_page_fix = """
+                var style = document.createElement('style');
+                style.type = 'text/css';
+                style.innerHTML = `
+                    @media print {
+                        @page {
+                            size: A4 portrait;
+                            margin: 0 !important;
+                        }
+                        html, body {
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            background: white !important;
+                            -webkit-print-color-adjust: exact !important;
+                            print-color-adjust: exact !important;
+                        }
+                        /* Xóa bỏ khoảng cách, viền và bóng đổ làm dài trang */
+                        .document_scroller, .document_column, .between_page_portal_root {
+                            margin: 0 !important;
+                            padding: 0 !important;
+                        }
+                        /* Khóa từng trang vừa khít 100% chiều cao trang A4 */
+                        [class*='page'], .outer_page {
+                            page-break-before: always !important;
+                            break-before: page !important;
+                            page-break-after: avoid !important;
+                            break-after: avoid !important;
+                            page-break-inside: avoid !important;
+                            break-inside: avoid !important;
+                            
+                            margin: 0 auto !important;
+                            box-shadow: none !important;
+                            border: none !important;
+                            
+                            /* Đảm bảo trang vừa vặn chiều cao in A4 */
+                            max-height: 100vh !important;
+                            box-sizing: border-box !important;
+                            display: block !important;
+                            position: relative !important;
+                        }
+                        /* Trang đầu tiên không cần ngắt trước */
+                        [class*='page']:first-of-type, .outer_page:first-of-type {
+                            page-break-before: auto !important;
+                            break-before: auto !important;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            """
+            driver.execute_script(css_page_fix)
+            time.sleep(1)
+
             # Lưu file PDF
             if self.browser_choice == "Google Chrome":
                 self.log_message.emit("Đang xuất file PDF qua Chrome DevTools...")
@@ -160,7 +217,14 @@ class ScribdWorker(QThread):
                     'landscape': False,
                     'displayHeaderFooter': False,
                     'printBackground': True,
-                    'preferCSSPageSize': True
+                    'preferCSSPageSize': False,     # Tắt prefer CSS để ép chặt khổ giấy A4
+                    'paperWidth': 8.27,             # Khổ rộng A4 (inch)
+                    'paperHeight': 11.50,           # Chiều cao A4 (inch)
+                    'marginTop': 0,
+                    'marginBottom': 0,
+                    'marginLeft': 0,
+                    'marginRight': 0,
+                    'scale': 0.98                   # Co nhẹ 2% để phần chân trang nằm trọn vẹn trong 1 trang giấy
                 }
                 pdf_data = driver.execute_cdp_cmd("Page.printToPDF", print_params)
 
