@@ -99,7 +99,7 @@ pyinstaller --noconsole --onefile --collect-all selenium --icon="UI/ico_1.ico" -
 
 * Ý tưởng & Logic bóc tách gốc: [tuyenubuntu (GitHub)](https://github.com/tuyenubuntu)
 
-* Phát triển giao diện & Tối ưu hóa: Huỳnh Tiến Tài
+* Phát triển giao diện & Tối ưu hóa: Truong Thanh Tuyen
 
 ```
 
